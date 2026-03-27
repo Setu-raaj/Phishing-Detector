@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title><Phish-Detector</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #030a0f;
+      --panel: #071520;
+      --border: #0f3a52;
+      --glow: #00e5ff;
+      --glow2: #00ff88;
+      --warn: #ffaa00;
+      --danger: #ff3c3c;
+      --safe: #00ff88;
+      --text: #a8d8e8;
+      --dim: #2a5a6a;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Share Tech Mono', monospace;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,229,255,0.015) 2px,
+        rgba(0,229,255,0.015) 4px
+      );
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,229,255,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,229,255,0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+ 
+    header {
+      text-align: center;
+      margin-bottom: 50px;
+      animation: fadeDown 0.8s ease forwards;
+    }
+
+    .logo-line {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      margin-bottom: 10px;
+    }
+
+    .shield-icon {
+      width: 48px;
+      height: 48px;
+      filter: drop-shadow(0 0 10px var(--glow));
+      animation: pulse 2.5s ease-in-out infinite;
+    }
+
+    h1 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 2.4rem;
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: 4px;
+      text-shadow: 0 0 20px var(--glow), 0 0 40px rgba(0,229,255,0.3);
+    }
+
+    .tagline {
+      color: var(--dim);
+      font-size: 0.8rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-top: 6px;
+    }
+
+    .tagline span {
+      color: var(--glow2);
+    }
+
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 32px;
+      position: relative;
+      box-shadow: 0 0 40px rgba(0,229,255,0.05), inset 0 0 30px rgba(0,0,0,0.3);
+      animation: fadeUp 0.8s ease 0.2s both;
+    }
+
+    .card::before {
+      content: 'THREAT ANALYSIS CONSOLE';
+      position: absolute;
+      top: -10px;
+      left: 20px;
+      background: var(--panel);
+      color: var(--dim);
+      font-size: 0.65rem;
+      letter-spacing: 2px;
+      padding: 0 8px;
+    }
+
+    .card::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--glow), transparent);
+      opacity: 0.6;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .input-wrap {
+      flex: 1;
+      position: relative;
+    }
+
+    .input-wrap::before {
+      content: '://';
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--dim);
+      font-size: 0.85rem;
+      pointer-events: none;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      background: rgba(0,0,0,0.5);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 14px 14px 14px 48px;
+      color: #fff;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.3s, box-shadow 0.3s;
+      letter-spacing: 1px;
+    }
+
+    input[type="text"]:focus {
+      border-color: var(--glow);
+      box-shadow: 0 0 15px rgba(0,229,255,0.2);
+    }
+
+    input::placeholder { color: var(--dim); }
+
+    button {
+      background: transparent;
+      border: 1px solid var(--glow);
+      color: var(--glow);
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      padding: 14px 24px;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-transform: uppercase;
+      white-space: nowrap;
+      position: relative;
+      overflow: hidden;
+    }
+
+    button::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--glow);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.3s;
+      z-index: -1;
+    }
+
+    button:hover {
+      color: var(--bg);
+      box-shadow: 0 0 20px rgba(0,229,255,0.4);
+    }
+
+    button:hover::before { transform: scaleX(1); }
+
+    button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    
+    #result {
+      margin-top: 28px;
+      display: none;
+      animation: fadeUp 0.5s ease forwards;
+    }
+
+    .verdict-bar {
+      border-radius: 3px;
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      border: 1px solid;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .verdict-bar::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0.07;
+    }
+
+    .verdict-bar.safe   { border-color: var(--safe);   color: var(--safe); }
+    .verdict-bar.safe::before   { background: var(--safe); }
+    .verdict-bar.warn   { border-color: var(--warn);   color: var(--warn); }
+    .verdict-bar.warn::before   { background: var(--warn); }
+    .verdict-bar.danger { border-color: var(--danger); color: var(--danger); }
+    .verdict-bar.danger::before { background: var(--danger); }
+
+    .verdict-text {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+    }
+
+    .risk-badge {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.7rem;
+      letter-spacing: 1px;
+      padding: 4px 12px;
+      border-radius: 2px;
+      border: 1px solid currentColor;
+    }
+
+   
+    .url-display {
+      background: rgba(0,0,0,0.4);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 10px 16px;
+      font-size: 0.8rem;
+      color: var(--dim);
+      word-break: break-all;
+      margin-bottom: 20px;
+      letter-spacing: 0.5px;
+    }
+
+    .url-display span { color: var(--text); }
+
+    .flags-title {
+      font-size: 0.7rem;
+      letter-spacing: 3px;
+      color: var(--dim);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .flags-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .flag-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(255,60,60,0.05);
+      border: 1px solid rgba(255,60,60,0.2);
+      border-radius: 3px;
+      padding: 10px 16px;
+      font-size: 0.85rem;
+      animation: slideIn 0.4s ease forwards;
+      opacity: 0;
+    }
+
+    .flag-item::before {
+      content: '▶';
+      color: var(--danger);
+      font-size: 0.6rem;
+      flex-shrink: 0;
+    }
+
+    .no-flags {
+      color: var(--safe);
+      font-size: 0.85rem;
+      padding: 12px 16px;
+      border: 1px solid rgba(0,255,136,0.2);
+      background: rgba(0,255,136,0.04);
+      border-radius: 3px;
+    }
+
+    
+    .score-section {
+      margin-bottom: 20px;
+    }
+
+    .score-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.7rem;
+      letter-spacing: 2px;
+      color: var(--dim);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .score-track {
+      height: 6px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 3px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .score-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.8s ease;
+      width: 0%;
+    }
+
+    
+    .loader {
+      display: none;
+      text-align: center;
+      padding: 20px;
+      color: var(--glow);
+      font-size: 0.8rem;
+      letter-spacing: 3px;
+    }
+
+    .loader-dots span {
+      animation: blink 1.2s infinite;
+      opacity: 0;
+    }
+    .loader-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .loader-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+    .history-section {
+      margin-top: 36px;
+      animation: fadeUp 0.8s ease 0.4s both;
+    }
+
+    .section-header {
+      font-size: 0.65rem;
+      letter-spacing: 3px;
+      color: var(--dim);
+      text-transform: uppercase;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .section-header::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    #history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .history-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 14px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+
+    .history-item:hover { border-color: var(--glow); }
+
+    .history-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .history-url {
+      flex: 1;
+      color: var(--dim);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .history-verdict {
+      font-size: 0.7rem;
+      white-space: nowrap;
+    }
+
+   
+    footer {
+      text-align: center;
+      margin-top: 50px;
+      color: var(--dim);
+      font-size: 0.65rem;
+      letter-spacing: 2px;
+      animation: fadeUp 0.8s ease 0.6s both;
+    }
+
+    
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(-10px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { filter: drop-shadow(0 0 8px var(--glow)); }
+      50%       { filter: drop-shadow(0 0 20px var(--glow)); }
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 0; }
+      50%       { opacity: 1; }
+    }
+
+    @keyframes scanLine {
+      0%   { top: -5%; }
+      100% { top: 105%; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- Header -->
+  <header>
+    <div class="logo-line">
+      <svg class="shield-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M24 4L6 12V24C6 34.5 14.1 44.3 24 47C33.9 44.3 42 34.5 42 24V12L24 4Z"
+              stroke="#00e5ff" stroke-width="2" fill="rgba(0,229,255,0.08)"/>
+        <path d="M16 24L21 29L32 18" stroke="#00ff88" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <h1>PHISHING DETECTOR</h1>
+    </div>
+    <div class="tagline">Real-time URL Threat DetectiOn &nbsp;|&nbsp; <span>SYSTEM ACTIVE</span></div>
+  </header>
+
+  <!-- Main Card -->
+  <div class="card">
+    <div class="input-row">
+      <div class="input-wrap">
+        <input type="text" id="urlInput" placeholder="https://example.com/login"
+               autocomplete="off" spellcheck="false"/>
+      </div>
+      <button id="scanBtn" onclick="scanURL()">SCAN</button>
+    </div>
+
+    
+    <div class="loader" id="loader">
+      ANALYZING<span class="loader-dots"><span>.</span><span>.</span><span>.</span></span>
+    </div>
+
+    
+    <div id="result">
+      <div class="verdict-bar" id="verdictBar">
+        <div class="verdict-text" id="verdictText"></div>
+        <div class="risk-badge" id="riskBadge"></div>
+      </div>
+
+      <div class="url-display">SCANNED: <span id="scannedUrl"></span></div>
+
+      <div class="score-section">
+        <div class="score-label">
+          <span>THREAT LEVEL</span>
+          <span id="scoreVal">0 / 6</span>
+        </div>
+        <div class="score-track">
+          <div class="score-fill" id="scoreFill"></div>
+        </div>
+      </div>
+
+      <div class="flags-title">⚠ DETECTED FLAGS</div>
+      <div class="flags-list" id="flagsList"></div>
+    </div>
+  </div>
+
+
+  <div class="history-section">
+    <div class="section-header">Recent Scans</div>
+    <div id="history-list"></div>
+  </div>
+
+  <footer>PHISHGUARD v1.0 &nbsp;·&nbsp; CYBER SECURITY PROJECT &nbsp;·&nbsp; FOR EDUCATIONAL USE</footer>
+
+</div>
+
+<script>
+  const history = [];
+
+  async function scanURL() {
+    const url = document.getElementById('urlInput').value.trim();
+    if (!url) {
+      alert('Please enter a URL to scan.');
+      return;
+    }
+
+    const btn = document.getElementById('scanBtn');
+    const loader = document.getElementById('loader');
+    const result = document.getElementById('result');
+
+    btn.disabled = true;
+    loader.style.display = 'block';
+    result.style.display = 'none';
+
+    try {
+      const response = await fetch('/check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url })
+      });
+
+      const data = await response.json();
+
+      if (data.error) {
+        alert('Error: ' + data.error);
+        return;
+      }
+
+      displayResult(data);
+      addToHistory(data);
+
+    } catch (err) {
+      alert('Could not reach the server. Make sure app.py is running.');
+    } finally {
+      btn.disabled = false;
+      loader.style.display = 'none';
+    }
+  }
+
+  function displayResult(data) {
+    const result     = document.getElementById('result');
+    const verdictBar = document.getElementById('verdictBar');
+    const verdictText = document.getElementById('verdictText');
+    const riskBadge  = document.getElementById('riskBadge');
+    const scannedUrl = document.getElementById('scannedUrl');
+    const scoreVal   = document.getElementById('scoreVal');
+    const scoreFill  = document.getElementById('scoreFill');
+    const flagsList  = document.getElementById('flagsList');
+
+   
+    const score = data.risk_score;
+    let cls, fillColor, pct;
+
+    if (score === 0) {
+      cls = 'safe'; fillColor = '#00ff88'; pct = 5;
+    } else if (score <= 2) {
+      cls = 'warn'; fillColor = '#ffaa00'; pct = Math.min(10 + score * 25, 60);
+    } else {
+      cls = 'danger'; fillColor = '#ff3c3c'; pct = Math.min(40 + score * 15, 100);
+    }
+
+    verdictBar.className = 'verdict-bar ' + cls;
+    verdictText.textContent = data.verdict;
+    riskBadge.textContent   = 'RISK SCORE: ' + score;
+    scannedUrl.textContent  = data.url;
+    scoreVal.textContent    = score + ' / 6';
+
+    scoreFill.style.background = fillColor;
+    scoreFill.style.boxShadow  = `0 0 8px ${fillColor}`;
+    setTimeout(() => scoreFill.style.width = pct + '%', 100);
+
+   
+    flagsList.innerHTML = '';
+    if (data.flags.length === 0) {
+      flagsList.innerHTML = '<div class="no-flags">✓ No suspicious indicators detected</div>';
+    } else {
+      data.flags.forEach((flag, i) => {
+        const el = document.createElement('div');
+        el.className = 'flag-item';
+        el.style.animationDelay = (i * 0.1) + 's';
+        el.textContent = flag;
+        flagsList.appendChild(el);
+      });
+    }
+
+    result.style.display = 'block';
+  }
+
+  function addToHistory(data) {
+    history.unshift(data);
+    if (history.length > 5) history.pop();
+
+    const list = document.getElementById('history-list');
+    list.innerHTML = '';
+
+    history.forEach(item => {
+      const score = item.risk_score;
+      const color = score === 0 ? '#00ff88' : score <= 2 ? '#ffaa00' : '#ff3c3c';
+      const label = score === 0 ? 'SAFE' : score <= 2 ? 'SUSPICIOUS' : 'PHISHING';
+
+      const el = document.createElement('div');
+      el.className = 'history-item';
+      el.innerHTML = `
+        <div class="history-dot" style="background:${color};box-shadow:0 0 6px ${color}"></div>
+        <div class="history-url">${item.url}</div>
+        <div class="history-verdict" style="color:${color}">${label}</div>
+      `;
+      el.onclick = () => {
+        document.getElementById('urlInput').value = item.url;
+        displayResult(item);
+      };
+      list.appendChild(el);
+    });
+  }
+
+  document.getElementById('urlInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') scanURL();
+  });
+</script>
+</body>
+</html>
