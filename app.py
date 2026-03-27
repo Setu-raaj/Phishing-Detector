@@ -9,7 +9,7 @@ def check_url(url):
     parsed = urlparse(url)
     ext = tldextract.extract(url)
 
-    # Suspicious signs
+
     flags = []
 
     if len(url) > 75:
@@ -31,7 +31,7 @@ def check_url(url):
     if subdomain_count > 2:
         flags.append("Too many subdomains")
 
-    # Score: more flags = more suspicious
+   
     score = len(flags)
     if score == 0:
         verdict = "✅ Looks Safe"
